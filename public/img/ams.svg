@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" fill="none">
+<defs><linearGradient id="a" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#343a42"/><stop offset="1" stop-color="#15181c"/></linearGradient></defs>
+<rect x="14" y="30" width="372" height="200" rx="22" fill="url(#a)" stroke="#3d444d" stroke-width="2"/>
+<rect x="14" y="30" width="372" height="26" rx="13" fill="#ff7a29" opacity=".14"/>
+<g fill="none" stroke-width="11">
+  <circle cx="98" cy="140" r="42" stroke="#ff7a29"/>
+  <circle cx="200" cy="140" r="42" stroke="#2ec4b6"/>
+  <circle cx="302" cy="140" r="42" stroke="#3aa9f0"/>
+</g>
+<g fill="#0f1215"><circle cx="98" cy="140" r="14"/><circle cx="200" cy="140" r="14"/><circle cx="302" cy="140" r="14"/></g>
+<text x="200" y="212" text-anchor="middle" font-family="monospace" font-size="15" fill="#6b7480" letter-spacing="6">AMS</text>
+</svg>

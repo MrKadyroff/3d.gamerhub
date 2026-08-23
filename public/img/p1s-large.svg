@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 560" fill="none">
+<defs>
+  <linearGradient id="body" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#2b3037"/><stop offset="1" stop-color="#14171b"/>
+  </linearGradient>
+  <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#5c7d8a" stop-opacity=".38"/>
+    <stop offset=".5" stop-color="#9fd4e6" stop-opacity=".12"/>
+    <stop offset="1" stop-color="#ff7a29" stop-opacity=".10"/>
+  </linearGradient>
+  <linearGradient id="amsg" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#343a42"/><stop offset="1" stop-color="#1b1f24"/>
+  </linearGradient>
+  <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+    <feGaussianBlur stdDeviation="14"/>
+  </filter>
+</defs>
+
+<ellipse cx="320" cy="512" rx="230" ry="26" fill="#000" opacity=".55" filter="url(#soft)"/>
+
+<!-- AMS сверху -->
+<g>
+  <rect x="150" y="46" width="340" height="104" rx="16" fill="url(#amsg)" stroke="#3d444d" stroke-width="2"/>
+  <rect x="150" y="46" width="340" height="16" rx="8" fill="#ff7a29" opacity=".16"/>
+  <g fill="none" stroke-width="7">
+    <circle cx="216" cy="102" r="26" stroke="#ff7a29" opacity=".9"/>
+    <circle cx="284" cy="102" r="26" stroke="#2ec4b6" opacity=".85"/>
+    <circle cx="352" cy="102" r="26" stroke="#3aa9f0" opacity=".85"/>
+    <circle cx="420" cy="102" r="26" stroke="#e8ecef" opacity=".8"/>
+  </g>
+  <g fill="#0f1215">
+    <circle cx="216" cy="102" r="9"/><circle cx="284" cy="102" r="9"/>
+    <circle cx="352" cy="102" r="9"/><circle cx="420" cy="102" r="9"/>
+  </g>
+  <text x="470" y="140" text-anchor="end" font-family="monospace" font-size="13" fill="#6b7480" letter-spacing="2">AMS</text>
+</g>
+<!-- трубки подачи -->
+<g stroke="#4a525b" stroke-width="4" fill="none" opacity=".85">
+  <path d="M216 150c0 26 14 32 40 34"/><path d="M284 150c0 22 6 30 24 34"/>
+  <path d="M352 150c0 22-6 30-24 34"/><path d="M420 150c0 26-14 32-40 34"/>
+</g>
+
+<!-- Корпус принтера -->
+<rect x="118" y="182" width="404" height="316" rx="20" fill="url(#body)" stroke="#3d444d" stroke-width="2"/>
+<rect x="146" y="210" width="348" height="230" rx="10" fill="url(#glass)" stroke="#4d5661" stroke-width="2"/>
+
+<!-- внутренняя рама + портал -->
+<g stroke="#5a636e" stroke-width="5" opacity=".7">
+  <path d="M166 232v190M474 232v190"/>
+</g>
+<rect x="160" y="266" width="320" height="12" rx="6" fill="#3f4750"/>
+<g>
+  <rect x="286" y="262" width="66" height="34" rx="7" fill="#ff7a29"/>
+  <path d="M312 296h14l-4 20h-6z" fill="#ff7a29"/>
+  <circle cx="319" cy="279" r="6" fill="#0f1215"/>
+</g>
+
+<!-- стол и деталь -->
+<rect x="192" y="392" width="256" height="14" rx="5" fill="#454e58"/>
+<rect x="196" y="384" width="248" height="10" rx="4" fill="#ff7a29" opacity=".22"/>
+<g>
+  <path d="M272 384h96l-12 -46h-72z" fill="#dfe5e9"/>
+  <path d="M284 338h72l-10-34h-52z" fill="#c9d2d8"/>
+  <g stroke="#aab4bb" stroke-width="1" opacity=".55">
+    <path d="M276 374h88M280 362h80M284 350h72M288 328h64M292 316h56"/>
+  </g>
+</g>
+
+<!-- панель управления -->
+<rect x="150" y="452" width="86" height="30" rx="8" fill="#0f1215" stroke="#3d444d"/>
+<circle cx="168" cy="467" r="5" fill="#ff7a29"/>
+<rect x="182" y="463" width="42" height="8" rx="4" fill="#39414a"/>
+<text x="494" y="474" text-anchor="end" font-family="monospace" font-size="14" fill="#6b7480" letter-spacing="3">P1S</text>
+
+<!-- катушка сбоку -->
+<g transform="translate(556 300)">
+  <circle r="44" fill="#1b1f24" stroke="#3d444d" stroke-width="2"/>
+  <circle r="34" fill="none" stroke="#ff7a29" stroke-width="16" opacity=".75"/>
+  <circle r="11" fill="#0f1215"/>
+</g>
+<path d="M512 300c-14 0-22 8-30 14" stroke="#ff7a29" stroke-width="3" fill="none" opacity=".7"/>
+</svg>
