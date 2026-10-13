@@ -34,11 +34,11 @@ export const PRICING = {
     { value: 0.80, label: '80% · максимум прочности' },
   ],
 
-  machineRatePerHour: 700,   // ₸/час работы принтера
+  machineRatePerHour: 1000,  // ₸/час работы принтера (амортизация + электричество + труд)
   setupFee: 400,             // подготовка модели / нарезка / съём
   minOrder: 1500,            // минимальная сумма заказа (рынок Алматы ~1 500 ₸)
   rushMult: 1.4,             // «срочно, за 24 часа»
-  supportsMult: 1.12,        // если нужны поддержки
+  supportsMult: 1.25,        // если нужны поддержки (материал + время на них)
 
   qtyDiscounts: [            // от какого количества → множитель
     { from: 25, mult: 0.75 },
@@ -46,8 +46,11 @@ export const PRICING = {
     { from: 5,  mult: 0.90 },
   ],
 
-  // Физика оценки времени
-  throughputMm3PerSec: 10,   // реальная средняя производительность P1S
+  // Физика оценки времени.
+  // Периметры и сплошные слои печатаются медленно, разрежённое заполнение — быстро.
+  // Один общий «средний поток» сильно занижал время для тонкостенных моделей.
+  wallFlowMm3PerSec: 3.2,    // стенки/дно/крышка на P1S, 0.2 мм
+  infillFlowMm3PerSec: 6.0,  // разрежённое заполнение
   startupMinutes: 7,         // прогрев, калибровка, снятие
   wallThicknessCm: 0.12,     // 3 периметра по 0.4
 
@@ -75,9 +78,15 @@ export const PRICING = {
  * @param {number} areaCm2 площадь поверхности
  */
 export function materialVolume(volumeCm3, areaCm2, infill) {
+  const { shell, inner } = volumeParts(volumeCm3, areaCm2, infill);
+  return shell + inner;
+}
+
+/** Оболочка и заполнение по отдельности — у них разная скорость печати. */
+export function volumeParts(volumeCm3, areaCm2, infill) {
   const shell = Math.min(volumeCm3, areaCm2 * PRICING.wallThicknessCm);
-  const inner = Math.max(0, volumeCm3 - shell);
-  return shell + inner * infill;
+  const inner = Math.max(0, volumeCm3 - shell) * infill;
+  return { shell, inner };
 }
 
 /**
@@ -92,10 +101,14 @@ export function quote(o) {
   const layer = PRICING.layers[o.layer] ?? PRICING.layers['0.20'];
   const qty = Math.max(1, o.qty | 0);
 
-  const matVolCm3 = materialVolume(o.volumeCm3, o.areaCm2, o.infill) * mode.materialMult;
+  const parts = volumeParts(o.volumeCm3, o.areaCm2, o.infill);
+  const shellCm3 = parts.shell * mode.materialMult;
+  const innerCm3 = parts.inner * mode.materialMult;
+  const matVolCm3 = shellCm3 + innerCm3;
   const grams = matVolCm3 * mat.density;
 
-  const seconds = (matVolCm3 * 1000) / PRICING.throughputMm3PerSec * layer.timeMult * mode.timeMult;
+  const seconds = (shellCm3 * 1000 / PRICING.wallFlowMm3PerSec
+                 + innerCm3 * 1000 / PRICING.infillFlowMm3PerSec) * layer.timeMult * mode.timeMult;
   let hours = seconds / 3600 + PRICING.startupMinutes / 60;
   if (o.supports) hours *= PRICING.supportsMult;
 

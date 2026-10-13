@@ -316,7 +316,7 @@ export class Viewer {
 }
 
 /** Объём (знаковые тетраэдры) и площадь поверхности меша, в мм³/мм². */
-function measure(geometry) {
+export function measure(geometry) {
   const p = geometry.attributes.position.array;
   let volume = 0, area = 0;
   const ax = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();

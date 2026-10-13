@@ -37,6 +37,8 @@
 <body>
 
 <div class="noise" aria-hidden="true"></div>
+<div class="scrollbar" aria-hidden="true"><i id="scrollBar"></i></div>
+<div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
 
 <!-- ── ШАПКА ─────────────────────────────────────────── -->
 <header class="nav">
@@ -45,6 +47,7 @@
     <span>3D<span class="accent">.GAMERHUB</span></span>
   </a>
   <nav class="nav__links">
+    <a href="#build">Как печатаем</a>
     <a href="#calc">Калькулятор</a>
     <a href="#maker">Конструктор</a>
     <a href="#works">Работы</a>
@@ -110,6 +113,55 @@
   </div>
 </section>
 
+<!-- ── ПЕЧАТЬ ВЖИВУЮ ─────────────────────────────────── -->
+<section class="section build" id="build" aria-label="Как печатает Bambu Lab P1S">
+  <div class="section__head">
+    <span class="eyebrow">00 — Печать вживую</span>
+    <h2>Впиши свой ник —<br><span class="accent">принтер напечатает.</span></h2>
+    <p>Это симуляция нашего Bambu Lab P1S с AMS. Вес, время и цена — настоящие, считаются тем же калькулятором, что и заказ.</p>
+  </div>
+
+  <div class="build__grid">
+    <div class="build__stage">
+      <canvas id="buildCanvas" aria-hidden="true"></canvas>
+      <img class="build__fallback" src="img/p1s.svg" alt="Bambu Lab P1S с AMS">
+      <div class="build__hud" aria-hidden="true">
+        <div class="hud__head"><span class="hud__dot"></span><b id="hudState">ПРОГРЕВ</b><i id="hudPct">0%</i></div>
+        <dl>
+          <div><dt>Слой</dt><dd id="hudLayer">0 / 0</dd></div>
+          <div><dt>Высота</dt><dd id="hudHeight">0.0 мм</dd></div>
+          <div><dt>Сопло</dt><dd id="hudNozzle">28 °C</dd></div>
+          <div><dt>Стол</dt><dd id="hudBed">24 °C</dd></div>
+          <div><dt>Пластик</dt><dd id="hudFil">0 г</dd></div>
+          <div><dt>Осталось</dt><dd id="hudEta">—</dd></div>
+        </dl>
+      </div>
+      <button class="tool build__replay" id="bdReplay" type="button">↻ Напечатать заново</button>
+      <div class="build__bar" aria-hidden="true"><i id="buildBar"></i></div>
+    </div>
+
+    <div class="panel panel--form build__side">
+      <label for="bdText">Надпись <span class="hint">до 14 символов</span></label>
+      <input type="text" id="bdText" maxlength="14" value="GAMERHUB" placeholder="Твой ник" autocomplete="off">
+      <p class="note" id="bdWarn"></p>
+
+      <label>Подложка</label>
+      <div class="bsws" id="bdPlate"></div>
+      <label>Буквы <span class="hint">второй цвет — через AMS</span></label>
+      <div class="bsws" id="bdLetters"></div>
+
+      <div class="total">
+        <div class="total__row"><span>Размер</span><b id="bdSize">—</b></div>
+        <div class="total__row"><span>Пластик</span><b id="bdGrams">—</b></div>
+        <div class="total__row"><span>Время печати</span><b id="bdTime">—</b></div>
+        <div class="total__sum"><div class="total__price" id="bdPrice">—</div></div>
+      </div>
+      <button class="btn btn--primary btn--wide" id="bdOrder" type="button">Хочу такую →</button>
+      <p class="note">Откроется конструктор с твоей надписью — размер и стиль можно поменять, затем отправить заявку.</p>
+    </div>
+  </div>
+</section>
+
 <!-- ── КАЛЬКУЛЯТОР ───────────────────────────────────── -->
 <section class="section calc" id="calc">
   <div class="section__head">
@@ -142,7 +194,10 @@
           <button class="tool" id="btnReset" title="Сбросить вид">⟳</button>
           <button class="tool" id="btnRemove" title="Убрать модель">✕</button>
         </div>
-        <div class="viewer__warn" id="volumeWarn" hidden>⚠ Модель не влезает в 256×256×256 мм — разрежем на части, напишем в чате</div>
+        <div class="viewer__warn" id="volumeWarn" hidden>
+          <b>⚠ Модель больше области печати 256 × 256 × 256 мм</b>
+          <span>Это не отказ. Мы сами разрежем модель на части, добавим замки/штифты под склейку и соберём — печать по частям входит в работу. Точный раскрой и цену подтвердит оценщик после проверки файла.</span>
+        </div>
       </div>
     </div>
 
@@ -221,12 +276,16 @@
           <div class="total__row"><span>Время печати</span><b id="rTime">—</b></div>
           <div class="total__row"><span>За одну штуку</span><b id="rItem">—</b></div>
           <div class="total__row total__row--muted" id="rDiscountRow" hidden><span>Скидка за тираж</span><b id="rDiscount">—</b></div>
+          <div class="total__note" id="oversizeNote" hidden>
+            <b>Модель выше лимита печати</b>
+            Габарит больше 256 × 256 × 256 мм — деталь печатается по частям. Подготовку модели (разрез, замки, штифты) и сборку делаем мы, отдельной работы с вашей стороны не нужно. Итог по такой модели считает оценщик.
+          </div>
           <div class="total__sum">
-            <span>Итого</span>
-            <div class="total__price" id="rTotal">0 ₽</div>
+            <span>Итого <i>примерно</i></span>
+            <div class="total__price" id="rTotal">≈ 0 ₸</div>
           </div>
           <button class="btn btn--primary btn--wide" id="btnOrder">Отправить заявку →</button>
-          <p class="disclaimer">Предварительный расчёт. Финальную цену подтвердим после проверки модели — обычно она совпадает.</p>
+          <p class="disclaimer"><b>Цена примерная.</b> Точную стоимость называет оценщик после обработки модели — проверки геометрии, ориентации, поддержек и раскроя. Обычно расчёт совпадает; если выйдет дешевле — считаем по меньшей сумме.</p>
         </div>
       </div>
     </div>
@@ -283,11 +342,11 @@
         <div class="total__row"><span>Пластик</span><b id="mkGrams">—</b></div>
         <div class="total__row"><span>Время печати</span><b id="mkTime">—</b></div>
         <div class="total__sum">
-          <span>Итого</span>
+          <span>Итого <i>примерно</i></span>
           <div class="total__price" id="mkPrice">—</div>
         </div>
         <button class="btn btn--primary btn--wide" id="mkOrder">Хочу такой →</button>
-        <p class="disclaimer">Материал и цвет выберем в переписке. Цена считается по той же формуле, что и для загруженных моделей.</p>
+        <p class="disclaimer"><b>Цена примерная.</b> Материал и цвет выберем в переписке. Точную стоимость подтвердит оценщик после обработки макета — формула та же, что и для загруженных моделей.</p>
       </div>
     </div>
 
@@ -474,5 +533,7 @@
 </div>
 
 <script type="module" src="js/app.js"></script>
+<script type="module" src="js/printer-demo.js"></script>
+<script type="module" src="js/fx.js"></script>
 </body>
 </html>

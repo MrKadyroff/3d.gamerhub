@@ -255,7 +255,9 @@ function recalc() {
   const bv = PRICING.buildVolume;
   const fits = [s.x, s.z].sort((a, b) => a - b);
   const plate = [bv.x, bv.y].sort((a, b) => a - b);
-  $('#volumeWarn').hidden = !(fits[0] > plate[0] || fits[1] > plate[1] || s.y > bv.z);
+  const oversize = fits[0] > plate[0] || fits[1] > plate[1] || s.y > bv.z;
+  $('#volumeWarn').hidden = !oversize;
+  $('#oversizeNote').hidden = !oversize;
 
   const r = quote({
     volumeCm3: m.volumeCm3, areaCm2: m.areaCm2,
@@ -274,7 +276,7 @@ function recalc() {
   $('#rDiscount').textContent = `−${Math.round((1 - r.discount) * 100)}%`;
 
   const price = $('#rTotal');
-  price.textContent = fmtMoney(r.total);
+  price.textContent = '≈ ' + fmtMoney(r.total);
   price.classList.add('is-bump');
   setTimeout(() => price.classList.remove('is-bump'), 200);
 }
@@ -470,7 +472,7 @@ function rebuild() {
   $('#mkGrams').textContent = `${r.grams} г PLA`;
   $('#mkTime').textContent = fmtTime(r.hours);
   const price = $('#mkPrice');
-  price.textContent = fmtMoney(r.total);
+  price.textContent = '≈ ' + fmtMoney(r.total);
   price.classList.add('is-bump');
   setTimeout(() => price.classList.remove('is-bump'), 200);
 }

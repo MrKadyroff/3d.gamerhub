@@ -9,6 +9,9 @@ mkdirSync(join(vendor, 'loaders'), { recursive: true });
 mkdirSync(join(vendor, 'controls'), { recursive: true });
 mkdirSync(join(vendor, 'geometries'), { recursive: true });
 mkdirSync(join(vendor, 'fonts'), { recursive: true });
+mkdirSync(join(vendor, 'environments'), { recursive: true });
+mkdirSync(join(vendor, 'postprocessing'), { recursive: true });
+mkdirSync(join(vendor, 'shaders'), { recursive: true });
 
 const nm = join(root, 'node_modules');
 copyFileSync(join(nm, 'three/build/three.module.js'), join(vendor, 'three.module.js'));
@@ -21,6 +24,19 @@ const files = [
   ['three/examples/jsm/loaders/3MFLoader.js', 'loaders/3MFLoader.js'],
   ['three/examples/jsm/loaders/FontLoader.js', 'loaders/FontLoader.js'],
   ['three/examples/jsm/geometries/TextGeometry.js', 'geometries/TextGeometry.js'],
+  ['three/examples/jsm/environments/RoomEnvironment.js', 'environments/RoomEnvironment.js'],
+  ['three/examples/jsm/geometries/RoundedBoxGeometry.js', 'geometries/RoundedBoxGeometry.js'],
+  ['three/examples/jsm/postprocessing/EffectComposer.js', 'postprocessing/EffectComposer.js'],
+  ['three/examples/jsm/postprocessing/RenderPass.js', 'postprocessing/RenderPass.js'],
+  ['three/examples/jsm/postprocessing/ShaderPass.js', 'postprocessing/ShaderPass.js'],
+  ['three/examples/jsm/postprocessing/MaskPass.js', 'postprocessing/MaskPass.js'],
+  ['three/examples/jsm/postprocessing/Pass.js', 'postprocessing/Pass.js'],
+  ['three/examples/jsm/postprocessing/UnrealBloomPass.js', 'postprocessing/UnrealBloomPass.js'],
+  ['three/examples/jsm/postprocessing/OutputPass.js', 'postprocessing/OutputPass.js'],
+  ['three/examples/jsm/shaders/CopyShader.js', 'shaders/CopyShader.js'],
+  ['three/examples/jsm/shaders/LuminosityHighPassShader.js', 'shaders/LuminosityHighPassShader.js'],
+  ['three/examples/jsm/shaders/OutputShader.js', 'shaders/OutputShader.js'],
+
 ];
 for (const [src, dst] of files) {
   // Переписываем bare-импорты на относительные пути — importmap не нужен.

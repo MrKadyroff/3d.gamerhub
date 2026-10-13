@@ -36,6 +36,8 @@ npm start           # перезапусти сервер
 
 | Что | Файл |
 |---|---|
+| Демо «печать вживую» (принтер, табличка с надписью, цена) | `public/js/printer-demo.js` + секция `#build` |
+| Мелкие анимации (счётчики, курсор, магнитные кнопки) | `public/js/fx.js` |
 | **Все цены и коэффициенты** | `public/js/pricing.js` |
 | Telegram / WhatsApp / телефон | `CONTACTS` в начале `public/js/app.js` |
 | Портфолио (подписи) | `WORKS` в `public/js/app.js` |

@@ -44,11 +44,11 @@ export function build(o) {
     font: o.font,
     size: o.height,
     depth: letterDepth,
-    curveSegments: 6,
+    curveSegments: o.curveSegments ?? 6,
     bevelEnabled: true,
     bevelThickness: o.height * 0.02,
     bevelSize: o.height * 0.015,
-    bevelSegments: 2,
+    bevelSegments: o.bevelSegments ?? 2,
   });
   textGeo.computeBoundingBox();
   const tb = textGeo.boundingBox;
@@ -96,7 +96,7 @@ export function build(o) {
   return { geometry, size: { x: size.x, y: size.y, z: size.z } };
 }
 
-function roundedRect(w, h, r) {
+export function roundedRect(w, h, r) {
   const x = -w / 2, y = -h / 2;
   const s = new THREE.Shape();
   s.moveTo(x + r, y);
