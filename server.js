@@ -3,6 +3,7 @@
 //  шлёт карточку заказа в Telegram.
 // ─────────────────────────────────────────────────────────────
 import 'dotenv/config';
+import compression from 'compression';
 import express from 'express';
 import multer from 'multer';
 import { randomUUID } from 'node:crypto';
@@ -72,6 +73,8 @@ app.use((req, res, next) => {
   next();
 });
 
+// gzip: three.js и остальной JS ужимаются в 3–4 раза — главный выигрыш при первой загрузке.
+app.use(compression({ threshold: 1024 }));
 app.use(express.json({ limit: '256kb' }));
 // Кэширование: код и разметку браузер обязан перепроверять на каждой загрузке,
 // иначе после обновления сайта у людей остаётся старый JS и страница ломается.
@@ -82,7 +85,7 @@ app.use(express.static(join(ROOT, 'public'), {
     if (/\.(html|js|css|json)$/.test(path) && !path.includes('/vendor/')) {
       res.setHeader('Cache-Control', 'no-cache');      // 304 при отсутствии изменений
     } else {
-      res.setHeader('Cache-Control', 'public, max-age=604800');
+      res.setHeader('Cache-Control', 'public, max-age=2592000');
     }
   },
 }));

@@ -17,8 +17,16 @@ const ACC = 0xff7a29;
 const BAMBU_GREEN = '#00ae42';
 // Реальные габариты P1S: 389 × 389 × 457 мм (см). Всё в сантиметрах.
 const W = 38.9, D = 38.9, FEET = 0.6, BASE_H = 7.0, FLOOR = FEET + BASE_H, TOP = 46.0, BED_Y = 9.4;
-const DUR = 22;                 // секунд на всю «печать» (таймлапс)
+// Длительность в секундах: подготовка (прогрев, калибровка, чистка) → сама печать → снятие модели.
+const SEC_PREP = 3.4, SEC_PRINT = 4, SEC_FIN = 2.4;
+const DUR = SEC_PREP + SEC_PRINT + SEC_FIN;
 const T_WARM = 0.05, T_LEVEL = 0.13, T_CHUTE = 0.17, T_PURGE = 0.2, T_PRINT = 0.86, T_FINISH = 0.88, CC_W = 0.06;
+/** Секунды → доля P (печать — ровно SEC_PRINT секунд, независимо от подготовки). */
+function timeToP(sec) {
+  if (sec <= SEC_PREP) return lerp(0, T_PURGE, sec / SEC_PREP);
+  if (sec <= SEC_PREP + SEC_PRINT) return lerp(T_PURGE, T_PRINT, (sec - SEC_PREP) / SEC_PRINT);
+  return lerp(T_PRINT, 1, Math.min(1, (sec - SEC_PREP - SEC_PRINT) / SEC_FIN));
+}
 const CHUTE_X = -15.2, HOME_X = -15.2, PARK_X = -13;
 const LEVEL = [[-9, -4], [0, -4], [9, -4], [9, 0], [0, 0], [-9, 0], [-9, 4], [0, 4], [9, 4]].map(([x, z]) => ({ x, z }));
 const PURGE_Z = 4.2, PURGE_X0 = -10.5, PURGE_X1 = 3;
@@ -144,13 +152,16 @@ function initScene(canvas, stage, root) {
   const coarse = matchMedia('(pointer: coarse)').matches;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true, powerPreference: 'high-performance' });
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const dprCap = coarse ? 2 : 2.5;
+  // слабое устройство: телефон/планшет, ≤4 ядер или ≤4 ГБ памяти — рисуем проще
+  const lowEnd = coarse || innerWidth < 820 || (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4;
+  let dprCap = lowEnd ? 1.25 : 1.75;
+  let fxOn = !lowEnd;                 // bloom + MSAA
   renderer.setPixelRatio(Math.min(devicePixelRatio, dprCap));
   renderer.localClippingEnabled = true;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.enabled = !lowEnd;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
   const maxAniso = renderer.capabilities.getMaxAnisotropy();
 
   const scene = new THREE.Scene();
@@ -175,9 +186,9 @@ function initScene(canvas, stage, root) {
   // светодиод камеры — отбрасывает мягкие тени от головы и детали на стол
   const spot = new THREE.SpotLight(0xfff1de, 950, 0, 0.95, 0.7, 2);
   spot.position.set(0, TOP - 3.2, 5); spot.target.position.set(0, BED_Y, 0);
-  spot.castShadow = true;
-  spot.shadow.mapSize.set(coarse ? 1024 : 2048, coarse ? 1024 : 2048);
-  spot.shadow.bias = -0.0004; spot.shadow.normalBias = 0.04; spot.shadow.radius = 4;
+  spot.castShadow = !lowEnd;
+  spot.shadow.mapSize.set(1024, 1024);
+  spot.shadow.bias = -0.0004; spot.shadow.normalBias = 0.04; spot.shadow.radius = 3;
   scene.add(spot, spot.target);
 
   // ── Материалы ─────────────────────────────────────────────
@@ -483,7 +494,7 @@ function initScene(canvas, stage, root) {
     if (typeof composer !== 'undefined') composer.setSize(vw, vh);
     camera.aspect = aspect; camera.updateProjectionMatrix();
   }
-  const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(2, 2, { type: THREE.HalfFloatType, samples: 4 }));
+  const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(2, 2, { type: THREE.HalfFloatType, samples: 2 }));
   composer.setPixelRatio(renderer.getPixelRatio());
   composer.addPass(new RenderPass(scene, camera));
   const bloom = new UnrealBloomPass(new THREE.Vector2(2, 2), 0.28, 0.6, 1.0);
@@ -566,7 +577,7 @@ function initScene(canvas, stage, root) {
   }
 
   // ── Главный цикл ──────────────────────────────────────────
-  const anim = { t: 0, started: false };
+  const anim = { t: 0, sec: 0, started: false };
   let last = performance.now(), visible = false, raf = 0, clock = 0, prevF = 0;
   const target = new THREE.Vector3(), lookTube = new THREE.Color(ACC);
   const fmtEta = (min) => `${Math.floor(min / 60)}ч ${String(Math.round(min % 60)).padStart(2, '0')}м`;
@@ -577,6 +588,23 @@ function initScene(canvas, stage, root) {
   const trailCol = new THREE.Color(1.0, 0.62, 0.3);
   let q = 0, noodleLen = 0;
 
+  // Авто-адаптация: если кадры долгие — по шагам упрощаем картинку, пока не станет плавно.
+  let frameNo = 0, gAcc = 0, gN = 0, gStep = 0;
+  function govern(dt) {
+    if (!anim.started || dt <= 0) return;
+    gAcc += dt; gN++;
+    if (gN < 40) return;
+    const avg = gAcc / gN; gAcc = 0; gN = 0;
+    if (avg < (lowEnd ? 0.034 : 0.026) || gStep >= 3) return;
+    gStep++;
+    if (gStep === 1) fxOn = false;
+    else if (gStep === 2) { dprCap = 1; renderer.setPixelRatio(1); composer.setPixelRatio(1); resize(); }
+    else if (renderer.shadowMap.enabled) {
+      renderer.shadowMap.enabled = false; spot.castShadow = false;
+      scene.traverse((o) => { if (o.material) [].concat(o.material).forEach((m) => { m.needsUpdate = true; }); });
+    }
+  }
+
   function frame(now) {
     raf = 0;
     if (!visible) return;
@@ -584,8 +612,9 @@ function initScene(canvas, stage, root) {
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
     clock += dt;
     if (reduce) anim.t = 1;
-    else if (anim.started) anim.t = Math.min(1, anim.t + dt / DUR);
-    const P = anim.t;
+    else if (anim.started) anim.sec = Math.min(DUR, anim.sec + dt);
+    if (reduce) anim.sec = DUR;
+    const P = anim.t = timeToP(anim.sec);
     const st = choreo(P);
     const f = st.f, H = sign.H, h = f * H;
     q = st.phase === 'done' ? st.q : 0;
@@ -670,7 +699,9 @@ function initScene(canvas, stage, root) {
     for (let i = 0; i < PN; i++) { arr[i * 3 + 1] += pv[i] * dt; if (arr[i * 3 + 1] > 80) arr[i * 3 + 1] = 0; }
     pg.attributes.position.needsUpdate = true;
 
-    composer.render();
+    frameNo++;
+    if (!lowEnd || frameNo % 2 === 0) { if (fxOn) composer.render(); else renderer.render(scene, camera); }
+    govern(dt);
 
     const nz = Math.round(lerp(28, 220, warm)), bd = Math.round(lerp(24, 60, bedWarm));
     const stateTxt = P >= 0.9 ? 'ГОТОВО' : st.phase === 'warm' ? 'ПРОГРЕВ' : st.phase === 'level' ? 'КАЛИБРОВКА' : st.phase === 'chute' ? 'ЧИСТКА СОПЛА'
@@ -718,7 +749,7 @@ function initScene(canvas, stage, root) {
       curCols[0].set(plateHex); curCols[1].set(letterHex);
       spoolMats[0].color.set(plateHex); spoolMats[1].color.set(letterHex);
     },
-    restart() { anim.t = 0; anim.started = visible; prevF = 0; tAge.fill(9); tc.fill(0); },
+    restart() { anim.t = 0; anim.sec = 0; anim.started = visible; prevF = 0; tAge.fill(9); tc.fill(0); },
   };
 }
 
@@ -796,4 +827,11 @@ export function initBuild() {
   rebuild();
 }
 
-initBuild();
+// Тяжёлое 3D поднимаем, только когда блок почти доскроллили: быстрее старт и меньше контекстов WebGL.
+const whenNear = (el, fn, margin = '900px') => {
+  if (!el) return;
+  if (!('IntersectionObserver' in window)) return fn();
+  const io = new IntersectionObserver((en) => { if (en.some((e) => e.isIntersecting)) { io.disconnect(); fn(); } }, { rootMargin: `${margin} 0px` });
+  io.observe(el);
+};
+whenNear(document.getElementById('build'), initBuild);

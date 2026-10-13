@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="modulepreload" href="vendor/three.module.js">
 <link rel="icon" href="img/favicon.svg">
 <link rel="canonical" href="https://3dgamerhub.kz/">
 <meta name="theme-color" content="#0b0c0e">
@@ -38,6 +39,7 @@
 
 <div class="noise" aria-hidden="true"></div>
 <div class="scrollbar" aria-hidden="true"><i id="scrollBar"></i></div>
+<div class="layer-hud" id="layerHud" aria-hidden="true"><span>СЛОЙ</span><b id="layerNum">0000</b><i></i></div>
 <div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
 
 <!-- ── ШАПКА ─────────────────────────────────────────── -->
@@ -116,7 +118,7 @@
 <!-- ── ПЕЧАТЬ ВЖИВУЮ ─────────────────────────────────── -->
 <section class="section build" id="build" aria-label="Как печатает Bambu Lab P1S">
   <div class="section__head">
-    <span class="eyebrow">00 — Печать вживую</span>
+    <span class="eyebrow">Печать вживую</span>
     <h2>Впиши свой ник —<br><span class="accent">принтер напечатает.</span></h2>
     <p>Это симуляция нашего Bambu Lab P1S с AMS. Вес, время и цена — настоящие, считаются тем же калькулятором, что и заказ.</p>
   </div>
@@ -165,7 +167,7 @@
 <!-- ── КАЛЬКУЛЯТОР ───────────────────────────────────── -->
 <section class="section calc" id="calc">
   <div class="section__head">
-    <span class="eyebrow">01 — Расчёт</span>
+    <span class="eyebrow">Расчёт</span>
     <h2>Загрузи модель.<br>Цена — сразу.</h2>
     <p>Всё считается у тебя в браузере: объём, вес пластика, время печати. Ничего не уходит на сервер, пока ты сам не отправишь заявку.</p>
   </div>
@@ -296,7 +298,7 @@
 <!-- ── КОНСТРУКТОР ───────────────────────────────────── -->
 <section class="section maker" id="maker">
   <div class="section__head">
-    <span class="eyebrow">02 — Конструктор</span>
+    <span class="eyebrow">Конструктор</span>
     <h2>Нет модели?<br><span class="accent">Собери прямо здесь.</span></h2>
     <p>Впиши ник, тег клана или что угодно — получишь настоящую 3D-модель, увидишь её со всех сторон и узнаешь цену. Файл сгенерируется сам, скачивать и моделировать ничего не нужно.</p>
   </div>
@@ -360,11 +362,29 @@
   </div>
 </section>
 
+<!-- ── ИСТОРИЯ ДЕТАЛИ (скролл = печать) ─────────────── -->
+<section class="story" id="story" aria-label="Как модель становится деталью">
+  <div class="story__pin">
+    <canvas id="storyCanvas" aria-hidden="true"></canvas>
+    <div class="story__txt">
+      <span class="eyebrow">От файла до детали</span>
+      <div class="story__steps">
+        <div class="story__step is-on"><b>01</b><h2>Загружаешь модель</h2><p>STL, 3MF или OBJ. Мы проверим геометрию и скажем честно, что получится.</p></div>
+        <div class="story__step"><b>02</b><h2>Режем на слои</h2><p>Слайсер нарезает деталь на сотни тонких слоёв и считает путь сопла.</p></div>
+        <div class="story__step"><b>03</b><h2>Печатаем</h2><p>Bambu Lab P1S выкладывает пластик слой за слоем. Листай — и деталь растёт.</p></div>
+        <div class="story__step"><b>04</b><h2>Готово</h2><p>Снимаем со стола, убираем поддержки, упаковываем. Забираешь или отправляем по Казахстану.</p><a class="btn btn--primary" href="#calc">Узнать цену</a></div>
+      </div>
+    </div>
+    <div class="story__hud"><span>СЛОЙ <b id="storyLayer">00 / 00</b></span><i class="story__bar"><u id="storyBar"></u></i>
+      <span class="story__dots"><i class="is-on"></i><i></i><i></i><i></i></span></div>
+  </div>
+</section>
+
 <!-- ── ГАЛЕРЕЯ ───────────────────────────────────────── -->
 <section class="section works" id="works">
   <div class="section__head works__head">
     <div>
-      <span class="eyebrow">03 — Что печатают</span>
+      <span class="eyebrow">Что печатают</span>
       <h2>От шестерён<br>до масок в полный размер</h2>
       <p>Самые частые заказы на FDM-печать — от механики до косплея. Нажми на карточку: материал и слой подставятся в калькулятор, останется загрузить свою модель.</p>
     </div>
@@ -391,7 +411,7 @@
            alt="Bambu Lab AMS" class="printer__ams">
     </div>
     <div class="printer__copy">
-      <span class="eyebrow">04 — Железо</span>
+      <span class="eyebrow">Железо</span>
       <h2>Bambu Lab P1S<br>+ AMS</h2>
       <p>CoreXY в закрытом корпусе. Быстро, стабильно, без «слонячьей ноги» и расслоений. AMS автоматически меняет катушки — поэтому мультицвет стоит адекватных денег, а не как ручная перезарядка.</p>
       <ul class="specs">
@@ -409,7 +429,7 @@
 <!-- ── МАТЕРИАЛЫ ─────────────────────────────────────── -->
 <section class="section materials" id="materials">
   <div class="section__head">
-    <span class="eyebrow">05 — Материалы</span>
+    <span class="eyebrow">Материалы</span>
     <h2>Два пластика,<br>которые закрывают 95% задач</h2>
   </div>
   <div class="mat__grid">
@@ -437,7 +457,7 @@
 <!-- ── КАК РАБОТАЕМ ──────────────────────────────────── -->
 <section class="section steps">
   <div class="section__head">
-    <span class="eyebrow">06 — Процесс</span>
+    <span class="eyebrow">Процесс</span>
     <h2>Четыре шага<br>до готовой детали</h2>
   </div>
   <ol class="steps__list">
@@ -451,7 +471,7 @@
 <!-- ── FAQ ───────────────────────────────────────────── -->
 <section class="section faq" id="faq">
   <div class="section__head">
-    <span class="eyebrow">07 — Вопросы</span>
+    <span class="eyebrow">Вопросы</span>
     <h2>Коротко<br>о главном</h2>
   </div>
   <div class="faq__list" id="faqList"></div>
@@ -535,5 +555,8 @@
 <script type="module" src="js/app.js"></script>
 <script type="module" src="js/printer-demo.js"></script>
 <script type="module" src="js/fx.js"></script>
+<script type="module" src="js/story.js"></script>
+<script type="module" src="js/cursor.js"></script>
+<script type="module" src="js/smooth.js"></script>
 </body>
 </html>

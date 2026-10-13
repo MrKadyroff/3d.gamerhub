@@ -10,8 +10,8 @@ export class Viewer {
   constructor(canvas) {
     this.canvas = canvas;
     // preserveDrawingBuffer нужен, чтобы снимок вьювера не приходил пустым.
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
-    this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: !matchMedia('(pointer: coarse)').matches, alpha: true, preserveDrawingBuffer: true });
+    this.renderer.setPixelRatio(Math.min(devicePixelRatio, matchMedia('(pointer: coarse)').matches ? 1.5 : 2));
     this.renderer.localClippingEnabled = true;
 
     this.scene = new THREE.Scene();
@@ -40,7 +40,11 @@ export class Viewer {
     this.printing = false;
 
     this.#observe();
-    this.renderer.setAnimationLoop(() => this.#tick());
+    // рисуем только пока холст на экране — иначе GPU зря греется при скролле
+    let onScreen = false;
+    const sync = () => this.renderer.setAnimationLoop(onScreen && !document.hidden ? () => this.#tick() : null);
+    new IntersectionObserver((en) => { onScreen = en[0].isIntersecting; sync(); }).observe(canvas);
+    document.addEventListener('visibilitychange', sync);
   }
 
   #makePlate() {

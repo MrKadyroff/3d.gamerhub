@@ -60,3 +60,5 @@ copyFileSync(join(nm, 'three/examples/fonts/droid/droid_sans_bold.typeface.json'
              join(vendor, 'fonts/droid_sans_bold.typeface.json'));
 
 console.log('vendor: ok');
+// Плавный (инерционный) скролл.
+copyFileSync(join(nm, 'lenis/dist/lenis.mjs'), join(vendor, 'lenis.mjs'));
